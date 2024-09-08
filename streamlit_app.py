@@ -4,6 +4,7 @@ import numpy as np
 import yfinance as yf
 from datetime import datetime
 import matplotlib.pyplot as plt
+import plotly.express as px
 
 st.title("Hello")
 
@@ -23,11 +24,12 @@ years_to_test = int(st.text_input("Years for plotting (0 = all):", "0"))
 
 st.header("%s Performance Distribution of %s"%(month_names[month],ticker))
 
-def get_dist(ticker,month,years_to_test=0):
-    data = yf.download(ticker, interval='1mo',progress=False)
-    data["change"] = round(100 * data["Adj Close"].pct_change(),1)
-    data.dropna(inplace=True)
-    data.reset_index(inplace=True)
+data = yf.download(ticker, interval='1mo',progress=False)
+data["change"] = round(100 * data["Adj Close"].pct_change(),1)
+data.dropna(inplace=True)
+data.reset_index(inplace=True)
+
+def get_dist(data,month,years_to_test=0):
     data["month"] = data["Date"].dt.month
     month_data = data[data["month"]==month]
     if years_to_test != 0:
@@ -84,7 +86,42 @@ def get_dist(ticker,month,years_to_test=0):
     plt.grid(False)
     return plt,info
 
-plt,info = get_dist(ticker = ticker,month = month,years_to_test=years_to_test)
+plt,info = get_dist(data = data,month = month,years_to_test=years_to_test)
 
 st.pyplot(plt)
 st.write("Information:",info)
+
+
+st.header("Monthly Performance of %s"%(ticker))
+def get_monthly_chart(data,years_to_test=0):
+    data["month_name"] = data["Date"].dt.month_name().apply(lambda x: x[:3])
+    data["month"] = data["Date"].dt.month
+    data["year"] = data["Date"].dt.year
+
+    pvt_data = data[["year","month","change"]].pivot(index='year', columns='month', values='change')
+    pvt_data = pvt_data.rename_axis(None, axis=1).reset_index()
+    pvt_data.columns = ["Year", "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
+    pvt_data = pvt_data.set_index('Year')
+    
+    if years_to_test != 0:
+        pvt_data = pvt_data[-1*years_to_test:]
+    
+    # Create a heatmap
+    fig = px.imshow(pvt_data,
+                    color_continuous_scale=[(0, "red"), (0.5, "white"), (1, "green")],
+                    labels={'x': 'Month', 'y': 'Year', 'color': '%change'},
+                    text_auto=True,
+                    width=1500,
+                    height=1000)
+
+    # Show the figure
+    fig.update_yaxes(tickvals=list(pvt_data.index), ticktext=list(pvt_data.index))
+    fig.update_layout(
+        modebar_remove=["toImage", "zoom", "pan", "resetScale", "hover"],
+        showlegend=False,
+        yaxis_title=None
+    )
+    return fig
+fig = get_monthly_chart(data,years_to_test)
+
+st.plotly_chart(fig)
