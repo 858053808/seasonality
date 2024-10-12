@@ -91,8 +91,6 @@ plt,info = get_dist(data = data,month = month,years_to_test=years_to_test)
 st.pyplot(plt)
 st.write("Information:",info)
 
-
-st.header("Monthly Performance of %s"%(ticker))
 def get_monthly_chart(data,years_to_test=0):
     data["month_name"] = data["Date"].dt.month_name().apply(lambda x: x[:3])
     data["month"] = data["Date"].dt.month
@@ -123,7 +121,11 @@ def get_monthly_chart(data,years_to_test=0):
         showlegend=False,
         yaxis_title=None
     )
-    return fig
-fig = get_monthly_chart(data,years_to_test)
+    return fig ,pvt_data
 
+fig, data = get_monthly_chart(data,years_to_test)
+avg = pd.DataFrame(data.mean().apply(lambda x: round(x,2))).transpose()
+
+st.header("Monthly Performance of %s"%(ticker))
+st.dataframe(avg,hide_index=True)
 st.plotly_chart(fig)
