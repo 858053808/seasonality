@@ -5,7 +5,7 @@ import yfinance as yf
 from datetime import datetime
 import matplotlib.pyplot as plt
 import plotly.express as px
-from tradingview_screener import Query, Column, constants, Scanner
+from tradingview_screener import Query, col
 import warnings
 warnings.filterwarnings("ignore")
 
@@ -13,12 +13,12 @@ st.title("Stock Screening")
 
 def get_screen_result():
     row,df = Query().select('close','Value.Traded').where(
-             Column('SMA20') > Column('SMA120')
-             ,Column('SMA60') > Column('SMA120')
-             ,Column('close') > Column('SMA200')
-             ,Column('exchange').isin(["NYSE","NASDAQ"])
-             ,Column('RSI9') < 35
-        ,Column('Value.Traded|1W') > 10000000).limit(1000).get_scanner_data()
+             col('SMA20') > col('SMA120')
+             ,col('SMA60') > col('SMA120')
+             ,col('close') > col('SMA200')
+             ,col('exchange').isin(["NYSE","NASDAQ"])
+             ,col('RSI9') < 35
+        ,col('Value.Traded|1W') > 10000000).limit(1000).get_scanner_data()
     df["Amount"] = df["Value.Traded"]/1000000
     df = df.drop("Value.Traded",axis=1)
     df["ticker"] = df["ticker"].apply(lambda x: x.split(":")[1].strip())
