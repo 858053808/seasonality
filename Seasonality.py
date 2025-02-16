@@ -25,7 +25,7 @@ years_to_test = int(st.text_input("Years for plotting (0 = all):", "0"))
 st.header("%s Performance Distribution of %s"%(month_names[month],ticker))
 
 data = yf.download(ticker, interval='1mo',progress=False)
-data["change"] = round(100 * data["Adj Close"].pct_change(),1)
+data["change"] = round(100 * data["Close"].pct_change(),1)
 data.dropna(inplace=True)
 data.reset_index(inplace=True)
 
